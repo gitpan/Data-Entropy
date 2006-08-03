@@ -24,6 +24,7 @@ t/pick.t
 t/rand.t
 t/rand_bits.t
 t/rand_fix.t
+t/rand_flt.t
 t/rand_int.t
 t/rand_prob.t
 t/rs_cryptcounter.t

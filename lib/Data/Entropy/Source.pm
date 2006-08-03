@@ -46,7 +46,7 @@ use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.000";
+our $VERSION = "0.001";
 
 use fields qw(rawsrc readstyle limit num);
 
@@ -196,7 +196,7 @@ obtained is 1 bit, with LIMIT = 2.
 sub break_int($) {
 	my($num) = @_;
 	my $type = ref($num);
-	$num = $num->as_int if $type eq "Math::BigRat";
+	$num = $num->as_number if $type eq "Math::BigRat";
 	my @limbs;
 	while($num != 0) {
 		my $l = $num & 255;
@@ -211,7 +211,6 @@ sub get_int($$) {
 	my __PACKAGE__ $self = shift;
 	my($limit) = @_;
 	my $type = ref($limit);
-	$limit = $limit->as_int if $type eq "Math::BigRat";
 	my $max = break_int($limit - 1);
 	my $len = @$max;
 	my @num_limbs;

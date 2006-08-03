@@ -1,16 +1,17 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Data-Entropy
-version:      0.000
+version:      0.001
 version_from: lib/Data/Entropy.pm
 installdirs:  site
 requires:
-    Crypt::Rijndael:               
+    Crypt::Rijndael:               0
+    Data::Float:                   0.002
     Errno:                         1.00
     Fcntl:                         1.04
     IO::File:                      1.03
-    LWP:                           5.53_94
-    LWP::UserAgent:                
+    LWP:                           5.5394
+    LWP::UserAgent:                0
     Math::BigInt:                  1.60
     Math::BigRat:                  0.04
     Params::Classify:              0.000

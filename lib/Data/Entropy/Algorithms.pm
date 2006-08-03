@@ -13,10 +13,11 @@ Data::Entropy::Algorithms - basic entropy-using algorithms
 	$j = rand_prob(1, 2, 3);
 	$j = rand_prob([ 1, 2, 3 ]);
 
-	use Data::Entropy::Algorithms qw(rand_fix rand);
+	use Data::Entropy::Algorithms qw(rand_fix rand rand_flt);
 
 	$x = rand_fix(48);
 	$x = rand(7);
+	$x = rand_flt(0.0, 7.0);
 
 	use Data::Entropy::Algorithms
 		qw(pick pick_r choose choose_r shuffle shuffle_r);
@@ -43,14 +44,18 @@ use strict;
 
 use Carp qw(croak);
 use Data::Entropy qw(entropy_source);
+use Data::Float 0.002 qw(
+	have_subnormal min_normal_exp significand_bits
+	float_is_finite float_parts float_sign mult_pow2 copysign
+);
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.000";
+our $VERSION = "0.001";
 
 use base "Exporter";
 our @EXPORT_OK = qw(
 	rand_bits rand_int rand_prob
-	rand_fix rand
+	rand_fix rand rand_flt
 	pick_r pick choose_r choose shuffle_r shuffle
 );
 
@@ -83,10 +88,10 @@ sub rand_bits($) {
 
 =item rand_int(LIMIT)
 
-LIMIT must be a positive integer.  Returns a uniformly-distributed
-random integer between zero inclusive and LIMIT exclusive.  LIMIT may be
-either a native integer, a C<Math::BigInt> object, or an integer-valued
-C<Math::BigRat> object; the returned number is of the same type.
+LIMIT must be a positive integer.  Returns a uniformly-distributed random
+integer in the range [0, LIMIT).  LIMIT may be either a native integer,
+a C<Math::BigInt> object, or an integer-valued C<Math::BigRat> object;
+the returned number is of the same type.
 
 =cut
 
@@ -141,13 +146,12 @@ sub rand_prob(@) {
 
 =item rand_fix(NBITS)
 
-Returns a uniformly-distributed random NBITS-bit fixed-point fraction
-between zero inclusive and one exclusive.  That is, the result is a
-randomly-chosen multiple of 2^-NBITS, the multiplier being a random
-integer between zero inclusive and 2^NBITS exclusive.  The value is
-returned in the form of a native floating point number, so NBITS can
-be at most one greater than the number of bits of significand in the
-floating point format.
+Returns a uniformly-distributed random NBITS-bit fixed-point fraction in
+the range [0, 1).  That is, the result is a randomly-chosen multiple of
+2^-NBITS, the multiplier being a random integer in the range [0, 2^NBITS).
+The value is returned in the form of a native floating point number, so
+NBITS can be at most one greater than the number of bits of significand
+in the floating point format.
 
 With NBITS = 48 the range of output values is the same as that of the
 Unix C<drand48> function.
@@ -198,10 +202,11 @@ to use this C<rand> by an incantation such as
 This function should not be used in any new code, because the kind
 of output supplied by C<rand> is hardly ever the right thing to use.
 The C<int(rand($n))> idiom to generate a random integer has non-uniform
-probabilities of generating each possible value, except when C<$n>
-is a power of two.  For floating point numbers, C<rand> can't generate
-most representable numbers in its output range, and the output is biased
-towards zero.  In new code use C<rand_int> to generate integers.
+probabilities of generating each possible value, except when C<$n> is a
+power of two.  For floating point numbers, C<rand> can't generate most
+representable numbers in its output range, and the output is biased
+towards zero.  In new code use C<rand_int> to generate integers and
+C<rand_flt> to generate floating point numbers.
 
 =cut
 
@@ -209,6 +214,109 @@ sub rand(;$) {
 	my($limit) = @_;
 	return rand_fix(48) *
 		(!defined($limit) || $limit == 0.0 ? 1.0 : $limit);
+}
+
+=item rand_flt(MIN, MAX)
+
+Selects a uniformly-distributed real number (with infinite precision)
+in the range [MIN, MAX] and then rounds this number to the nearest
+representable floating point value, which it returns.  (Actually it is
+only B<as if> the function worked this way: in fact it never generates
+the number with infinite precision.  It selects between the representable
+floating point values with the probabilities implied by this process.)
+
+This can return absolutely any floating point value in the range [MIN,
+MAX]; both MIN and MAX themselves are possible return values.  All bits
+of the floating point type are filled randomly, so the range of values
+that can be returned depends on the details of the floating point format.
+(See L<Data::Float> for low-level floating point utilities.)
+
+The function C<die>s if MIN and MAX are not both finite.  If MIN is
+greater than MAX then their roles are swapped: the order of the limit
+parameters actually doesn't matter.  If the limits are identical then
+that value is always returned.  As a special case, if the limits are
+positive zero and negative zero then a zero will be returned with a
+randomly-chosen sign.
+
+=cut
+
+sub rand_flt($$) {
+	my($a, $b) = @_;
+	croak "bounds for rand_flt() must be finite"
+		unless float_is_finite($a) && float_is_finite($b);
+	if($a == $b) {
+		return $_[rand_int(2)]
+			if $a == 0.0 && float_sign($a) ne float_sign($b);
+		return $_[0];
+	}
+	($a, $b) = ($b, $a) if abs($a) < abs($b);
+	my($prm_sign, $prm_max_exp, $prm_max_sgnf) =
+		$a == 0.0 ? ("+", min_normal_exp, 0.0) : float_parts($a);
+	my($b_sign, $b_exp, $b_sgnf) =
+		$b == 0.0 ? ("+", min_normal_exp, 0.0) : float_parts($b);
+	my($min_exp, $min_sgnf);
+	my($opp_max_exp, $opp_max_sgnf);
+	if($b_sign eq $prm_sign) {
+		($min_exp, $min_sgnf) = ($b_exp, $b_sgnf);
+		($opp_max_exp, $opp_max_sgnf) = (min_normal_exp, 0.0);
+	} else {
+		($min_exp, $min_sgnf) = (min_normal_exp, 0.0);
+		($opp_max_exp, $opp_max_sgnf) = ($b_exp, $b_sgnf);
+	}
+	TRY_AGAIN:
+	my $exp = $prm_max_exp;
+	my $bseg = significand_bits;
+	$bseg = 28 if $bseg > 28;
+	my $prm_frng = $prm_max_sgnf * (1 << $bseg);
+	my $prm_range = int($prm_frng);
+	$prm_range++ if $prm_frng != $prm_range;
+	my $min_bits = $bseg - ($exp - $min_exp);
+	my $min_range = $min_bits >= 0 ? int($min_sgnf * (1 << $min_bits)) : 0;
+	my $opp_bits = $bseg - ($exp - $opp_max_exp);
+	my $opp_frng = $opp_bits >= 0 ? $opp_max_sgnf * (1 << $opp_bits) : 0;
+	my $opp_range = int($opp_frng);
+	$opp_range++ if $opp_frng != $opp_range;
+	my $n = $min_range + rand_int($prm_range - $min_range + $opp_range);
+	my($sg, $max_exp, $max_sgnf);
+	if($n >= $prm_range) {
+		$n -= $prm_range;
+		($sg, $max_exp, $max_sgnf) = ($b, $opp_max_exp, $opp_max_sgnf);
+	} else {
+		($sg, $max_exp, $max_sgnf) = ($a, $prm_max_exp, $prm_max_sgnf);
+	}
+	while($n == 0 && $exp - $bseg - 1 >= min_normal_exp) {
+		$exp -= $bseg + 1;
+		$bseg = significand_bits;
+		$bseg = 28 if $bseg > 28;
+		$n = rand_int(2 << $bseg);
+	}
+	for(my $bit = 16; $bit; $bit >>= 1) {
+		if($bseg >= $bit && $exp - $bit >= min_normal_exp &&
+				$n < (2 << ($bseg - $bit))) {
+			$bseg -= $bit;
+			$exp -= $bit;
+		}
+	}
+	goto TRY_AGAIN if $exp < $min_exp;
+	my $top_sgnf = $exp == $max_exp ? $max_sgnf : 2.0;
+	my $bot_sgnf = $exp == $min_exp ? $min_sgnf : 1.0;
+	my $sgnf = mult_pow2($n, -$bseg);
+	if(!have_subnormal && $exp == min_normal_exp && $sgnf < 1.0) {
+		$top_sgnf = 1.0;
+		$sgnf = 0.0;
+	} else {
+		$bot_sgnf = 1.0 if !have_subnormal && $exp == min_normal_exp &&
+					$bot_sgnf < 1.0;
+		for(my $bdone = $bseg; $bdone != significand_bits; ) {
+			my $bseg = significand_bits - $bdone;
+			$bseg = 28 if $bseg > 28;
+			$bdone += $bseg;
+			$sgnf += mult_pow2(rand_int(1 << $bseg), -$bdone);
+		}
+	}
+	goto TRY_AGAIN if $sgnf < $bot_sgnf || $sgnf >= $top_sgnf;
+	$sgnf = $top_sgnf if $sgnf == $bot_sgnf && rand_int(2);
+	return copysign($sgnf == 0.0 ? 0.0 : mult_pow2($sgnf, $exp), $sg);
 }
 
 =back
