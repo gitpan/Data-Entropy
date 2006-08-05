@@ -44,7 +44,7 @@ use strict;
 use Fcntl 1.04 qw(SEEK_SET SEEK_CUR SEEK_END);
 use Params::Classify 0.000 qw(is_number is_ref is_string);
 
-our $VERSION = "0.001";
+our $VERSION = "0.002";
 
 use fields qw(cipher blksize counter subpos buffer);
 

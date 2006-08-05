@@ -1,5 +1,6 @@
 use Test::More tests => 261;
 
+use Data::Float qw(significand_bits);
 use IO::File;
 
 BEGIN {
@@ -8,15 +9,23 @@ BEGIN {
 	use_ok Data::Entropy::Algorithms, qw(rand);
 }
 
+$skip_all = significand_bits < 47;
+
 with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
 ), sub {
 	while(<DATA>) {
 		chop;
-		is sprintf("%.5f", rand(7)), $_;
+		SKIP: {
+			skip "non-standard fraction length", 1 if $skip_all;
+			is sprintf("%.5f", rand(7)), $_;
+		}
 	}
-	is sprintf("%.5f", rand), "0.40339";
-	is sprintf("%.5f", rand(0)), "0.57643";
+	SKIP: {
+		skip "non-standard fraction length", 2 if $skip_all;
+		is sprintf("%.5f", rand), "0.40339";
+		is sprintf("%.5f", rand(0)), "0.57643";
+	}
 }
 
 __DATA__

@@ -50,7 +50,7 @@ use Data::Float 0.002 qw(
 );
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.001";
+our $VERSION = "0.002";
 
 use base "Exporter";
 our @EXPORT_OK = qw(
@@ -158,40 +158,37 @@ Unix C<drand48> function.
 
 =cut
 
-my @fixbit;
-for(my $e = 1.0; ; ) {
-	my $ne = $e * 0.5;
-	push @fixbit, $ne;
-	last unless (1.0 + $ne) - 1.0 == $ne;
-	$e = $ne;
-}
-
 sub rand_fix($) {
 	my($nbits) = @_;
 	croak "need a non-negative number of bits to dispense"
 		unless $nbits >= 0;
-	croak "can't generate more than ".scalar(@fixbit).
+	croak "can't generate more than ".(significand_bits+1).
 			" bits of fixed-point fraction"
-		if $nbits > @fixbit;
+		if $nbits > significand_bits+1;
 	my $frac = 0.0;
 	for(my $pos = 24; $pos <= $nbits; $pos += 24) {
-		$frac += rand_int(1 << 24) * $fixbit[$pos - 1];
+		$frac += mult_pow2(rand_int(1 << 24), -$pos);
 	}
-	$frac += rand_int(1 << ($nbits % 24)) * $fixbit[$nbits - 1];
+	$frac += mult_pow2(rand_int(1 << ($nbits % 24)), -$nbits);
 	return $frac;
 }
 
 =item rand[(LIMIT)]
 
-Generates a random fixed-point fraction by C<rand_fix(48)> and then
-multiplies it by LIMIT (default 1, and 0 also gets treated as 1) and
-returns the result.  This is a drop-in replacement for C<CORE::rand>:
-it produces exactly the same range of output values, but using the
-current entropy source instead of a sucky PRNG with linear relationships
-between successive outputs.  (C<CORE::rand> does the type of calculation
-described, but using the PRNG C<drand48> to generate the fixed-point
-fraction.)  The details of behaviour may change in the future if the
-behaviour of C<CORE::rand> changes, to maintain the match.
+Generates a random fixed-point fraction by C<rand_fix> and then multiplies
+it by LIMIT, returning the result.  LIMIT defaults to 1, and if it
+is 0 then that is also treated as 1.  The length of the fixed-point
+fraction is 48 bits, unless that can't be represented in the native
+floating point type, in which case the longest possible fraction will
+be generated instead.
+
+This is a drop-in replacement for C<CORE::rand>: it produces exactly the
+same range of output values, but using the current entropy source instead
+of a sucky PRNG with linear relationships between successive outputs.
+(C<CORE::rand> does the type of calculation described, but using the
+PRNG C<drand48> to generate the fixed-point fraction.)  The details of
+behaviour may change in the future if the behaviour of C<CORE::rand>
+changes, to maintain the match.
 
 Where the source of a module can't be readily modified, it can be made
 to use this C<rand> by an incantation such as
@@ -210,9 +207,11 @@ C<rand_flt> to generate floating point numbers.
 
 =cut
 
+use constant RAND_NBITS => 48 > significand_bits+1 ? significand_bits+1 : 48;
+
 sub rand(;$) {
 	my($limit) = @_;
-	return rand_fix(48) *
+	return rand_fix(RAND_NBITS) *
 		(!defined($limit) || $limit == 0.0 ? 1.0 : $limit);
 }
 
@@ -265,49 +264,54 @@ sub rand_flt($$) {
 	}
 	TRY_AGAIN:
 	my $exp = $prm_max_exp;
-	my $bseg = significand_bits;
-	$bseg = 28 if $bseg > 28;
-	my $prm_frng = $prm_max_sgnf * (1 << $bseg);
-	my $prm_range = int($prm_frng);
-	$prm_range++ if $prm_frng != $prm_range;
-	my $min_bits = $bseg - ($exp - $min_exp);
-	my $min_range = $min_bits >= 0 ? int($min_sgnf * (1 << $min_bits)) : 0;
-	my $opp_bits = $bseg - ($exp - $opp_max_exp);
-	my $opp_frng = $opp_bits >= 0 ? $opp_max_sgnf * (1 << $opp_bits) : 0;
-	my $opp_range = int($opp_frng);
-	$opp_range++ if $opp_frng != $opp_range;
-	my $n = $min_range + rand_int($prm_range - $min_range + $opp_range);
-	my($sg, $max_exp, $max_sgnf);
-	if($n >= $prm_range) {
-		$n -= $prm_range;
-		($sg, $max_exp, $max_sgnf) = ($b, $opp_max_exp, $opp_max_sgnf);
-	} else {
-		($sg, $max_exp, $max_sgnf) = ($a, $prm_max_exp, $prm_max_sgnf);
+	my $bdone = significand_bits;
+	$bdone = 28 if $bdone > 28;
+	my $prm_frng = $prm_max_sgnf * (1 << $bdone);
+	if($prm_max_sgnf < 1.0) {
+		# subnormal limit
+		my $desired_rng = 1 << $bdone;
+		while($bdone != significand_bits) {
+			$bdone++;
+			$prm_frng += $prm_frng;
+			last if $prm_frng >= $desired_rng;
+		}
 	}
-	while($n == 0 && $exp - $bseg - 1 >= min_normal_exp) {
-		$exp -= $bseg + 1;
-		$bseg = significand_bits;
-		$bseg = 28 if $bseg > 28;
-		$n = rand_int(2 << $bseg);
+	my $prm_rng = int($prm_frng);
+	$prm_rng++ if $prm_frng != $prm_rng;
+	my $min_b = $bdone - ($exp - $min_exp);
+	my $min_rng = $min_b >= 0 ? int(mult_pow2($min_sgnf, $min_b)) : 0;
+	my $opp_b = $bdone - ($exp - $opp_max_exp);
+	my $opp_frng = $opp_b >= 0 ? mult_pow2($opp_max_sgnf, $opp_b) : 0;
+	my $opp_rng = int($opp_frng);
+	$opp_rng++ if $opp_frng != $opp_rng;
+	my $n = $min_rng + rand_int($prm_rng - $min_rng + $opp_rng);
+	my($sg, $max_exp, $max_sgnf) = ($a, $prm_max_exp, $prm_max_sgnf);
+	if($n >= $prm_rng) {
+		$n -= $prm_rng;
+		($sg, $max_exp, $max_sgnf) = ($b, $opp_max_exp, $opp_max_sgnf);
+	}
+	while($n == 0 && $exp - $bdone - 1 >= min_normal_exp) {
+		$exp -= $bdone + 1;
+		$n = rand_int(2 << $bdone);
 	}
 	for(my $bit = 16; $bit; $bit >>= 1) {
-		if($bseg >= $bit && $exp - $bit >= min_normal_exp &&
-				$n < (2 << ($bseg - $bit))) {
-			$bseg -= $bit;
+		if($bdone >= $bit && $exp - $bit >= min_normal_exp &&
+				$n < (2 << ($bdone - $bit))) {
+			$bdone -= $bit;
 			$exp -= $bit;
 		}
 	}
 	goto TRY_AGAIN if $exp < $min_exp;
 	my $top_sgnf = $exp == $max_exp ? $max_sgnf : 2.0;
 	my $bot_sgnf = $exp == $min_exp ? $min_sgnf : 1.0;
-	my $sgnf = mult_pow2($n, -$bseg);
+	my $sgnf = mult_pow2($n, -$bdone);
 	if(!have_subnormal && $exp == min_normal_exp && $sgnf < 1.0) {
 		$top_sgnf = 1.0;
 		$sgnf = 0.0;
 	} else {
 		$bot_sgnf = 1.0 if !have_subnormal && $exp == min_normal_exp &&
 					$bot_sgnf < 1.0;
-		for(my $bdone = $bseg; $bdone != significand_bits; ) {
+		while($bdone != significand_bits) {
 			my $bseg = significand_bits - $bdone;
 			$bseg = 28 if $bseg > 28;
 			$bdone += $bseg;
