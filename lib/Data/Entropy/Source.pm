@@ -46,7 +46,7 @@ use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.002";
+our $VERSION = "0.003";
 
 use fields qw(rawsrc readstyle limit num);
 
@@ -78,7 +78,7 @@ sub new($$$) {
 	croak "no raw entropy source given" unless defined $rawsrc;
 	croak "read style `$readstyle' not recognised"
 		unless $readstyle =~ /\A(?:getc|sysread)\z/;
-	my __PACKAGE__ $self = fields::new($class);
+	my Data::Entropy::Source $self = fields::new($class);
 	$self->{rawsrc} = $rawsrc;
 	$self->{readstyle} = $readstyle;
 	$self->{limit} = 1;
@@ -100,7 +100,7 @@ direct access to the raw entropy source.
 =cut
 
 sub get_octet($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	if($self->{readstyle} eq "getc") {
 		my $errno = $!;
 		$! = 0;
@@ -128,7 +128,7 @@ sub get_octet($) {
 
 sub get_small_int($$) {
 	use integer;
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	my($limit) = @_;
 	my $reqlimit = $limit << 15;
 	while(1) {
@@ -154,7 +154,7 @@ sub get_small_int($$) {
 # was extracted using ->get_small_int.
 
 sub put_small_int($$$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	my($limit, $num) = @_;
 	$self->{limit} *= $limit;
 	$self->{num} = $self->{num} * $limit + $num;
@@ -169,7 +169,7 @@ significant bits set to zero.
 =cut
 
 sub get_bits($$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	my($nbits) = @_;
 	my $nbytes = $nbits >> 3;
 	$nbits &= 7;
@@ -208,7 +208,7 @@ sub break_int($) {
 }
 
 sub get_int($$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	my($limit) = @_;
 	my $type = ref($limit);
 	my $max = break_int($limit - 1);
@@ -259,7 +259,7 @@ approximately 0.918 bits of entropy.
 =cut
 
 sub get_prob($$$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::Source $self = shift;
 	my($prob0, $prob1) = @_;
 	croak "probabilities must be non-negative"
 		unless $prob0 >= 0 && $prob1 >= 0;
@@ -315,7 +315,7 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

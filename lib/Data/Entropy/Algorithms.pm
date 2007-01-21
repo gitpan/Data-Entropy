@@ -50,7 +50,7 @@ use Data::Float 0.002 qw(
 );
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.002";
+our $VERSION = "0.003";
 
 use base "Exporter";
 our @EXPORT_OK = qw(
@@ -220,7 +220,7 @@ sub rand(;$) {
 Selects a uniformly-distributed real number (with infinite precision)
 in the range [MIN, MAX] and then rounds this number to the nearest
 representable floating point value, which it returns.  (Actually it is
-only B<as if> the function worked this way: in fact it never generates
+only I<as if> the function worked this way: in fact it never generates
 the number with infinite precision.  It selects between the representable
 floating point values with the probabilities implied by this process.)
 
@@ -436,7 +436,7 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

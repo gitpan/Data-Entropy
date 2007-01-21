@@ -44,7 +44,7 @@ use strict;
 use Fcntl 1.04 qw(SEEK_SET SEEK_CUR SEEK_END);
 use Params::Classify 0.000 qw(is_number is_ref is_string);
 
-our $VERSION = "0.002";
+our $VERSION = "0.003";
 
 use fields qw(cipher blksize counter subpos buffer);
 
@@ -64,7 +64,7 @@ output of the cipher's counter mode.
 
 sub new($$) {
 	my($class, $cipher) = @_;
-	my __PACKAGE__ $self = fields::new($class);
+	my Data::Entropy::RawSource::CryptCounter $self = fields::new($class);
 	$self->{cipher} = $cipher;
 	$self->{blksize} = $cipher->blocksize;
 	$self->{counter} = "\0" x $self->{blksize};
@@ -98,18 +98,18 @@ is fundamentally read-only.
 =cut
 
 sub ensure_buffer($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	$self->{buffer} = $self->{cipher}->encrypt($self->{counter})
 		unless exists $self->{buffer};
 }
 
 sub clear_buffer($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	delete $self->{buffer};
 }
 
 sub increment_counter($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	for(my $i = 0; $i != $self->{blksize}; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
 		unless($c == 255) {
@@ -122,7 +122,7 @@ sub increment_counter($) {
 }
 
 sub decrement_counter($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	for(my $i = 0; ; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
 		unless($c == 0) {
@@ -142,7 +142,7 @@ sub error($) { 0 }
 sub clearerr($) { 0 }
 
 sub getc($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return undef unless defined $self->{counter};
 	$self->ensure_buffer;
 	my $ret = substr($self->{buffer}, $self->{subpos}, 1);
@@ -155,7 +155,7 @@ sub getc($) {
 }
 
 sub ungetc($$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	unless($self->{subpos} == 0) {
 		$self->{subpos}--;
 		return;
@@ -167,7 +167,7 @@ sub ungetc($$) {
 }
 
 sub read($$$;$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my(undef, $length, $offset) = @_;
 	return undef if $length < 0;
 	$_[0] = "" unless defined $_[0];
@@ -208,7 +208,7 @@ sub read($$$;$) {
 
 sub tell($) {
 	use integer;
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my $ctr = $self->{counter};
 	my $nblocks;
 	if(defined $ctr) {
@@ -225,7 +225,7 @@ sub tell($) {
 }
 
 sub sysseek($$$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my($offset, $whence) = @_;
 	if($whence == SEEK_SET) {
 		use integer;
@@ -272,12 +272,12 @@ sub sysseek($$$) {
 sub seek($$$) { shift->sysseek(@_) ? 1 : 0 }
 
 sub getpos($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return [ $self->{counter}, $self->{subpos} ];
 }
 
 sub setpos($$) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my($pos) = @_;
 	return undef unless is_ref($pos, "ARRAY") && @$pos == 2;
 	my($ctr, $subpos) = @$pos;
@@ -294,7 +294,7 @@ sub setpos($$) {
 }
 
 sub eof($) {
-	my __PACKAGE__ $self = shift;
+	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return !defined($self->{counter});
 }
 
@@ -312,7 +312,7 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

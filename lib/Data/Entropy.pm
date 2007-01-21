@@ -43,7 +43,7 @@ use strict;
 use Carp qw(croak);
 use Params::Classify qw(is_ref);
 
-our $VERSION = "0.002";
+our $VERSION = "0.003";
 
 use base "Exporter";
 our @EXPORT_OK = qw(entropy_source with_entropy_source);
@@ -128,7 +128,7 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
