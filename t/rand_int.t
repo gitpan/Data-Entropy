@@ -1,12 +1,17 @@
 use Test::More tests => 35;
 
-use IO::File;
-use Math::BigInt;
+use IO::File 1.03;
+use Math::BigInt 1.16;
 
 BEGIN {
 	use_ok Data::Entropy::Source;
 	use_ok Data::Entropy, qw(with_entropy_source);
 	use_ok Data::Entropy::Algorithms, qw(rand_int);
+}
+
+sub match($$) {
+	my($a, $b) = @_;
+	ok ref($a) eq ref($b) && $a == $b;
 }
 
 with_entropy_source +Data::Entropy::Source->new(
@@ -15,10 +20,10 @@ with_entropy_source +Data::Entropy::Source->new(
 	my $limit = Math::BigInt->new("100000000000000000000");
 	while(<DATA>) {
 		while(/(\d+)/g) {
-			is rand_int($limit), Math::BigInt->new($1);
+			match rand_int($limit), Math::BigInt->new($1);
 		}
 	}
-	is rand_int(1), 0;
+	match rand_int(1), 0;
 	eval { rand_int(0); };
 	like $@, qr/\Aneed a positive upper limit for random variable/;
 }

@@ -1,14 +1,13 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Data-Entropy
-version:      0.003
+version:      0.004
 version_from: lib/Data/Entropy.pm
 installdirs:  site
 requires:
     Crypt::Rijndael:               0
     Data::Float:                   0.002
     Errno:                         1.00
-    Fcntl:                         1.04
     IO::File:                      1.03
     LWP:                           5.5394
     LWP::UserAgent:                0
@@ -17,4 +16,4 @@ requires:
     Params::Classify:              0.000
 
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+generated_by: ExtUtils::MakeMaker version 6.30_01

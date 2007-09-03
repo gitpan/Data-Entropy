@@ -47,7 +47,7 @@ use Errno 1.00 qw(EIO);
 use LWP 5.53_94;
 use LWP::UserAgent;
 
-our $VERSION = "0.003";
+our $VERSION = "0.004";
 
 use fields qw(ua buffer bufpos error);
 

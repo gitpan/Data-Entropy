@@ -1,7 +1,6 @@
 use Test::More tests => 13;
 
 use Crypt::Rijndael;
-use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 
 BEGIN { use_ok Data::Entropy, qw(with_entropy_source entropy_source); }
 

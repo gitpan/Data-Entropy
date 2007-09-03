@@ -1,9 +1,14 @@
 use Test::More tests => 247;
 
-use IO::File;
-use Math::BigInt;
+use IO::File 1.03;
+use Math::BigInt 1.16;
 
 BEGIN { use_ok Data::Entropy::Source; }
+
+sub match($$) {
+	my($a, $b) = @_;
+	ok ref($a) eq ref($b) && $a == $b;
+}
 
 my $rawsource = IO::File->new("t/test0.entropy", "r") or die $!;
 my $source = Data::Entropy::Source->new($rawsource, "getc");
@@ -13,7 +18,7 @@ my $limit = Math::BigInt->new("100000000000000000000");
 
 while(<DATA>) {
 	while(/(\d+)/g) {
-		is $source->get_int($limit), Math::BigInt->new($1);
+		match $source->get_int($limit), Math::BigInt->new($1);
 	}
 }
 

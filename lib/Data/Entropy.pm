@@ -43,7 +43,7 @@ use strict;
 use Carp qw(croak);
 use Params::Classify qw(is_ref);
 
-our $VERSION = "0.003";
+our $VERSION = "0.004";
 
 use base "Exporter";
 our @EXPORT_OK = qw(entropy_source with_entropy_source);

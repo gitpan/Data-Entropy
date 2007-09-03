@@ -7,7 +7,6 @@ WriteMakefile(
 		Crypt::Rijndael => 0,
 		Data::Float => "0.002",
 		Errno => "1.00",
-		Fcntl => "1.04",
 		IO::File => "1.03",
 		LWP => "5.5394",
 		LWP::UserAgent => 0,

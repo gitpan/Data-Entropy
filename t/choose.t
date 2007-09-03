@@ -1,6 +1,6 @@
 use Test::More tests => 54;
 
-use IO::File;
+use IO::File 1.03;
 
 BEGIN {
 	use_ok Data::Entropy::Source;

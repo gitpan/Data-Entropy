@@ -1,7 +1,6 @@
 use Test::More tests => 11001;
 
-use IO::File;
-use Math::BigInt;
+use IO::File 1.03;
 
 BEGIN { use_ok Data::Entropy::Algorithms, qw(rand_flt); }
 

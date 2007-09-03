@@ -1,3 +1,11 @@
+version 0.004; 2007-09-03
+
+  * in D::E::RS::CryptCounter, construct the SEEK_* constants explicitly
+    instead of importing from Fcntl, to avoid requiring a version of
+    Fcntl that is only supplied with perl v5.8
+
+  * test explicitly for correct class of results
+
 version 0.003; 2007-01-21
 
   * bugfix: avoid "my __PACKAGE__", for compatibility with perl v5.6

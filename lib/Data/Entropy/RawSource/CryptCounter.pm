@@ -41,10 +41,9 @@ package Data::Entropy::RawSource::CryptCounter;
 use warnings;
 use strict;
 
-use Fcntl 1.04 qw(SEEK_SET SEEK_CUR SEEK_END);
 use Params::Classify 0.000 qw(is_number is_ref is_string);
 
-our $VERSION = "0.003";
+our $VERSION = "0.004";
 
 use fields qw(cipher blksize counter subpos buffer);
 
@@ -223,6 +222,10 @@ sub tell($) {
 	return -1 unless ($pos-$self->{subpos}) / $self->{blksize} == $nblocks;
 	return $pos;
 }
+
+use constant SEEK_SET => 0;
+use constant SEEK_CUR => 1;
+use constant SEEK_END => 2;
 
 sub sysseek($$$) {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;

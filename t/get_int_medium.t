@@ -1,10 +1,15 @@
-use Test::More tests => 1 + (500 * 2 + 1)*3;
+use Test::More tests => 1 + (500 + 1)*3;
 
-use IO::File;
-use Math::BigInt;
-use Math::BigRat;
+use IO::File 1.03;
+use Math::BigInt 1.16;
+use Math::BigRat 0.04;
 
 BEGIN { use_ok Data::Entropy::Source; }
+
+sub match($$) {
+	my($a, $b) = @_;
+	ok ref($a) eq ref($b) && $a == $b;
+}
 
 my $rawsource = IO::File->new("t/test0.entropy", "r") or die $!;
 my $source0 = Data::Entropy::Source->new($rawsource, "getc");
@@ -23,14 +28,11 @@ while(<DATA>) {
 	while(/(\d+)/g) {
 		my $val = 0 + $1;
 		my $tval = $source0->get_int(1000);
-		is ref($tval), "";
-		ok $tval == $val;
+		match $tval, $val;
 		$tval = $source1->get_int($bigint_thousand);
-		is ref($tval), "Math::BigInt";
-		ok $tval == $val;
+		match $tval, Math::BigInt->new($val);
 		$tval = $source2->get_int($bigrat_thousand);
-		is ref($tval), "Math::BigRat";
-		ok $tval == $val;
+		match $tval, Math::BigRat->new($val);
 	}
 }
 

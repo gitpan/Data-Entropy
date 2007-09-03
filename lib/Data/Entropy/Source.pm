@@ -46,7 +46,7 @@ use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.003";
+our $VERSION = "0.004";
 
 use fields qw(rawsrc readstyle limit num);
 

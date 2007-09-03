@@ -50,7 +50,7 @@ use Data::Float 0.002 qw(
 );
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.003";
+our $VERSION = "0.004";
 
 use base "Exporter";
 our @EXPORT_OK = qw(

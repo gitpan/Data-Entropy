@@ -1,7 +1,7 @@
 use Test::More tests => 261;
 
-use Data::Float qw(significand_bits);
-use IO::File;
+use Data::Float 0.000 qw(significand_bits);
+use IO::File 1.03;
 
 BEGIN {
 	use_ok Data::Entropy::Source;

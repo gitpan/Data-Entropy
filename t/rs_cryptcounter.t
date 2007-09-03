@@ -1,9 +1,12 @@
 use Test::More tests => 58;
 
 use Crypt::Rijndael;
-use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 
 BEGIN { use_ok Data::Entropy::RawSource::CryptCounter; }
+
+use constant SEEK_SET => 0;
+use constant SEEK_CUR => 1;
+use constant SEEK_END => 2;
 
 my $ctr = Data::Entropy::RawSource::CryptCounter
 		->new(Crypt::Rijndael->new("\0" x 32));
