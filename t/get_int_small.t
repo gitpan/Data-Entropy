@@ -14,7 +14,7 @@ my $source = Data::Entropy::Source->new($rawsource, "getc");
 ok $source;
 
 while(<DATA>) {
-	while(/(\d)/g) {
+	while(/([0-9])/g) {
 		match $source->get_int(10), $1;
 	}
 }

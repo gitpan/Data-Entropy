@@ -44,13 +44,13 @@ use strict;
 
 use Carp qw(croak);
 use Data::Entropy qw(entropy_source);
-use Data::Float 0.002 qw(
+use Data::Float 0.008 qw(
 	have_subnormal min_normal_exp significand_bits
 	float_is_finite float_parts float_sign mult_pow2 copysign
 );
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.004";
+our $VERSION = "0.005";
 
 use base "Exporter";
 our @EXPORT_OK = qw(
@@ -173,7 +173,7 @@ sub rand_fix($) {
 	return $frac;
 }
 
-=item rand[(LIMIT)]
+=item rand([LIMIT])
 
 Generates a random fixed-point fraction by C<rand_fix> and then multiplies
 it by LIMIT, returning the result.  LIMIT defaults to 1, and if it
@@ -436,7 +436,9 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007, 2009 Andrew Main (Zefram) <zefram@fysh.org>
+
+=head1 LICENSE
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

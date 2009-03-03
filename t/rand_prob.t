@@ -12,11 +12,11 @@ with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
 ), sub {
 	$_ = <DATA>;
-	while(/(\d)/g) {
+	while(/([0-9])/g) {
 		is rand_prob(1, 2, 0, 3, 4), $1;
 	}
 	$_ = <DATA>;
-	while(/(\d)/g) {
+	while(/([0-9])/g) {
 		is rand_prob([ 1, 2, 0, 3, 4 ]), $1;
 	}
 	is rand_prob(1), 0;

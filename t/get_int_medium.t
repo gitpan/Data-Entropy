@@ -1,8 +1,8 @@
 use Test::More tests => 1 + (500 + 1)*3;
 
 use IO::File 1.03;
-use Math::BigInt 1.16;
-use Math::BigRat 0.04;
+my $have_bigint = eval("use Math::BigInt 1.16; 1");
+my $have_bigrat = eval("use Math::BigRat 0.04; 1");
 
 BEGIN { use_ok Data::Entropy::Source; }
 
@@ -21,18 +21,24 @@ $rawsource = IO::File->new("t/test0.entropy", "r") or die $!;
 my $source2 = Data::Entropy::Source->new($rawsource, "getc");
 ok $source2;
 
-my $bigint_thousand = Math::BigInt->new(1000);
-my $bigrat_thousand = Math::BigRat->new(1000);
+my $bigint_thousand = $have_bigint && Math::BigInt->new(1000);
+my $bigrat_thousand = $have_bigrat && Math::BigRat->new(1000);
 
 while(<DATA>) {
-	while(/(\d+)/g) {
+	while(/([0-9]+)/g) {
 		my $val = 0 + $1;
 		my $tval = $source0->get_int(1000);
 		match $tval, $val;
-		$tval = $source1->get_int($bigint_thousand);
-		match $tval, Math::BigInt->new($val);
-		$tval = $source2->get_int($bigrat_thousand);
-		match $tval, Math::BigRat->new($val);
+		SKIP: {
+			skip "Math::BigInt unavailable", 1 unless $have_bigint;
+			$tval = $source1->get_int($bigint_thousand);
+			match $tval, Math::BigInt->new($val);
+		}
+		SKIP: {
+			skip "Math::BigRat unavailable", 1 unless $have_bigrat;
+			$tval = $source2->get_int($bigrat_thousand);
+			match $tval, Math::BigRat->new($val);
+		}
 	}
 }
 

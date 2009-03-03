@@ -46,7 +46,7 @@ use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.004";
+our $VERSION = "0.005";
 
 use fields qw(rawsrc readstyle limit num);
 
@@ -73,7 +73,7 @@ interface to implement when a non-I/O object is being used for the handle.
 
 =cut
 
-sub new($$$) {
+sub new {
 	my($class, $rawsrc, $readstyle) = @_;
 	croak "no raw entropy source given" unless defined $rawsrc;
 	croak "read style `$readstyle' not recognised"
@@ -99,7 +99,7 @@ direct access to the raw entropy source.
 
 =cut
 
-sub get_octet($) {
+sub get_octet {
 	my Data::Entropy::Source $self = shift;
 	if($self->{readstyle} eq "getc") {
 		my $errno = $!;
@@ -124,9 +124,9 @@ sub get_octet($) {
 	}
 }
 
-# ->get_small_int may be used only with a native integer argument, up to 256.
+# ->_get_small_int may be used only with a native integer argument, up to 256.
 
-sub get_small_int($$) {
+sub _get_small_int {
 	use integer;
 	my Data::Entropy::Source $self = shift;
 	my($limit) = @_;
@@ -150,10 +150,10 @@ sub get_small_int($$) {
 	}
 }
 
-# ->put_small_int is used to return the unused portion of some entropy that
-# was extracted using ->get_small_int.
+# ->_put_small_int is used to return the unused portion of some entropy that
+# was extracted using ->_get_small_int.
 
-sub put_small_int($$$) {
+sub _put_small_int {
 	my Data::Entropy::Source $self = shift;
 	my($limit, $num) = @_;
 	$self->{limit} *= $limit;
@@ -168,14 +168,14 @@ significant bits set to zero.
 
 =cut
 
-sub get_bits($$) {
+sub get_bits {
 	my Data::Entropy::Source $self = shift;
 	my($nbits) = @_;
 	my $nbytes = $nbits >> 3;
 	$nbits &= 7;
 	my $str = "";
 	$str .= $self->get_octet while $nbytes--;
-	$str .= chr($self->get_small_int(1 << $nbits)) if $nbits;
+	$str .= chr($self->_get_small_int(1 << $nbits)) if $nbits;
 	return $str;
 }
 
@@ -193,7 +193,7 @@ obtained is 1 bit, with LIMIT = 2.
 
 =cut
 
-sub break_int($) {
+sub _break_int {
 	my($num) = @_;
 	my $type = ref($num);
 	$num = $num->as_number if $type eq "Math::BigRat";
@@ -207,24 +207,24 @@ sub break_int($) {
 	return \@limbs;
 }
 
-sub get_int($$) {
+sub get_int {
 	my Data::Entropy::Source $self = shift;
 	my($limit) = @_;
 	my $type = ref($limit);
-	my $max = break_int($limit - 1);
+	my $max = _break_int($limit - 1);
 	my $len = @$max;
 	my @num_limbs;
 	if($len) {
 		TRY_AGAIN:
 		my $i = $len;
 		my $ml = $max->[--$i];
-		my $nl = $self->get_small_int($ml + 1);
+		my $nl = $self->_get_small_int($ml + 1);
 		@num_limbs = ($nl);
 		while($i && $nl == $ml) {
 			$ml = $max->[--$i];
-			$nl = $self->get_small_int(256);
+			$nl = $self->_get_small_int(256);
 			if($nl > $ml) {
-				$self->put_small_int(255 - $ml, $nl - $ml - 1);
+				$self->_put_small_int(255-$ml, $nl-$ml-1);
 				goto TRY_AGAIN;
 			}
 			push @num_limbs, $nl;
@@ -258,7 +258,7 @@ approximately 0.918 bits of entropy.
 
 =cut
 
-sub get_prob($$$) {
+sub get_prob {
 	my Data::Entropy::Source $self = shift;
 	my($prob0, $prob1) = @_;
 	croak "probabilities must be non-negative"
@@ -269,8 +269,8 @@ sub get_prob($$$) {
 	} elsif($prob1 == 0) {
 		return 0;
 	}
-	my $max0 = break_int($prob0 - 1);
-	my $maxt = break_int($prob0 + $prob1 - 1);
+	my $max0 = _break_int($prob0 - 1);
+	my $maxt = _break_int($prob0 + $prob1 - 1);
 	my $len = @$maxt;
 	push @$max0, (0) x ($len - @$max0) unless @$max0 == $len;
 	TRY_AGAIN:
@@ -278,20 +278,20 @@ sub get_prob($$$) {
 	my $maybebad = 1;
 	my($mtl, $m0l, $nl);
 	for(my $i = $len - 1; ; $i--) {
-		$nl = $self->get_small_int(
+		$nl = $self->_get_small_int(
 			$i == $len-1 ? $maxt->[-1] + 1 : 256);
 		$m0l = $maybe0 ? $max0->[$i] : -1;
 		$mtl = $maybebad ? $maxt->[$i] : 256;
 		my $lastlimb = $i ? 0 : 1;
 		if($nl < $m0l + $lastlimb) {
-			$self->put_small_int($m0l + $lastlimb, $nl);
+			$self->_put_small_int($m0l + $lastlimb, $nl);
 			return 0;
 		} elsif($nl > $m0l && $nl < $mtl + $lastlimb) {
-			$self->put_small_int($mtl + $lastlimb - $m0l - 1,
+			$self->_put_small_int($mtl + $lastlimb - $m0l - 1,
 						$nl - $m0l - 1);
 			return 1;
 		} elsif($nl > $mtl) {
-			$self->put_small_int(255 - $mtl, $nl - $mtl - 1);
+			$self->_put_small_int(255 - $mtl, $nl - $mtl - 1);
 			goto TRY_AGAIN;
 		}
 		$maybe0 = 0 if $nl > $m0l;
@@ -315,7 +315,9 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007, 2009 Andrew Main (Zefram) <zefram@fysh.org>
+
+=head1 LICENSE
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

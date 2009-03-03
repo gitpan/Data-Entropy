@@ -1,3 +1,33 @@
+version 0.005; 2009-03-03
+
+  * bugfix: require bugfixed version of Data::Float (for $SIG{__DIE__}
+    handling)
+
+  * in D::E::RS::RandomOrg and D::E::RS::RandomnumbersInfo, be more
+    stringent in parsing the returned data, to avoid potentially
+    generating non-byte bytes
+
+  * test POD syntax and coverage, and rename some internal functions
+    and make a small style change in documentation to satisfy the
+    coverage test
+
+  * drop prototypes from method subs (where the prototypes have no effect)
+
+  * in tests, avoid unreliable "\d" and "\w" regexp elements
+
+  * remove a stray "use Crypt::Rijndael" from one of the test scripts
+
+  * build with Module::Build instead of ExtUtils::MakeMaker
+
+  * complete dependency list
+
+  * express relationship with versions of Math::BigInt and Math::BigRat
+    as conflicts rather than dependencies
+
+  * include signature in distribution
+
+  * in documentation, separate "license" section from "copyright" section
+
 version 0.004; 2007-09-03
 
   * in D::E::RS::CryptCounter, construct the SEEK_* constants explicitly
@@ -8,7 +38,7 @@ version 0.004; 2007-09-03
 
 version 0.003; 2007-01-21
 
-  * bugfix: avoid "my __PACKAGE__", for compatibility with perl v5.6
+  * avoid "my __PACKAGE__", for compatibility with perl v5.6
 
   * markup fix in documentation for rand_flt()
 

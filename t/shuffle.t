@@ -13,11 +13,11 @@ with_entropy_source +Data::Entropy::Source->new(
 ), sub {
 	@items = qw(a b c d e f g h i j);
 	$_ = <DATA>;
-	while(/(\w+)/g) {
+	while(/([a-z]+)/g) {
 		is join("", shuffle(@items)), $1;
 	}
 	$_ = <DATA>;
-	while(/(\w+)/g) {
+	while(/([a-z]+)/g) {
 		is join("", @{shuffle_r(\@items)}), $1;
 	}
 	is_deeply [ shuffle(qw(a)) ], [ qw(a) ];

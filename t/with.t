@@ -1,7 +1,5 @@
 use Test::More tests => 13;
 
-use Crypt::Rijndael;
-
 BEGIN { use_ok Data::Entropy, qw(with_entropy_source entropy_source); }
 
 with_entropy_source 4, sub {

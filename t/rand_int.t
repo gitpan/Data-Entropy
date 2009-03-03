@@ -1,9 +1,10 @@
-use Test::More tests => 35;
-
 use IO::File 1.03;
-use Math::BigInt 1.16;
+use Test::More;
 
 BEGIN {
+	eval "use Math::BigInt 1.16; 1" or
+		plan skip_all => "Math::BigInt unavailable";
+	plan tests => 35;
 	use_ok Data::Entropy::Source;
 	use_ok Data::Entropy, qw(with_entropy_source);
 	use_ok Data::Entropy::Algorithms, qw(rand_int);
@@ -19,7 +20,7 @@ with_entropy_source +Data::Entropy::Source->new(
 ), sub {
 	my $limit = Math::BigInt->new("100000000000000000000");
 	while(<DATA>) {
-		while(/(\d+)/g) {
+		while(/([0-9]+)/g) {
 			match rand_int($limit), Math::BigInt->new($1);
 		}
 	}

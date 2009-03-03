@@ -9,7 +9,7 @@ my $source = Data::Entropy::Source->new($rawsource, "getc");
 ok $source;
 
 while(<DATA>) {
-	while(/(\d)/g) {
+	while(/([0-9])/g) {
 		is $source->get_prob(1000, 3), $1;
 	}
 }

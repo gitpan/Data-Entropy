@@ -13,11 +13,11 @@ with_entropy_source +Data::Entropy::Source->new(
 ), sub {
 	@items = qw(a b c d e f g h i j);
 	$_ = <DATA>;
-	while(/(\w)/g) {
+	while(/([a-z])/g) {
 		is pick(@items), $1;
 	}
 	$_ = <DATA>;
-	while(/(\w)/g) {
+	while(/([a-z])/g) {
 		is pick_r(\@items), $1;
 	}
 	is pick("a"), "a";

@@ -1,9 +1,12 @@
-use Test::More tests => 247;
-
 use IO::File 1.03;
-use Math::BigInt 1.16;
+use Test::More;
 
-BEGIN { use_ok Data::Entropy::Source; }
+BEGIN {
+	eval "use Math::BigInt 1.16; 1" or
+		plan skip_all => "Math::BigInt unavailable";
+	plan tests => 247;
+	use_ok Data::Entropy::Source;
+}
 
 sub match($$) {
 	my($a, $b) = @_;
@@ -17,7 +20,7 @@ ok $source;
 my $limit = Math::BigInt->new("100000000000000000000");
 
 while(<DATA>) {
-	while(/(\d+)/g) {
+	while(/([0-9]+)/g) {
 		match $source->get_int($limit), Math::BigInt->new($1);
 	}
 }

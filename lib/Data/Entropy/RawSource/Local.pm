@@ -48,13 +48,13 @@ use strict;
 use Carp qw(croak);
 use IO::File 1.03;
 
-our $VERSION = "0.004";
+our $VERSION = "0.005";
 
 =head1 CONSTRUCTOR
 
 =over
 
-=item Data::Entropy::RawSource::Local->new[(FILENAME)]
+=item Data::Entropy::RawSource::Local->new([FILENAME])
 
 Opens a file handle referring to the randomness device, or C<die>s
 on error.  The device opened is B</dev/random> by default, but this may
@@ -65,7 +65,7 @@ if their equivalent devices are in different places.
 
 =cut
 
-sub new($;$) {
+sub new {
 	my($class, $filename) = @_;
 	$filename = "/dev/random" unless defined $filename;
 	my $self = IO::File->new($filename, "r");
@@ -97,7 +97,9 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007, 2009 Andrew Main (Zefram) <zefram@fysh.org>
+
+=head1 LICENSE
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

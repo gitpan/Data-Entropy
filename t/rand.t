@@ -1,6 +1,6 @@
 use Test::More tests => 261;
 
-use Data::Float 0.000 qw(significand_bits);
+use Data::Float 0.008 qw(significand_bits);
 use IO::File 1.03;
 
 BEGIN {

@@ -43,7 +43,7 @@ use strict;
 
 use Params::Classify 0.000 qw(is_number is_ref is_string);
 
-our $VERSION = "0.004";
+our $VERSION = "0.005";
 
 use fields qw(cipher blksize counter subpos buffer);
 
@@ -61,7 +61,7 @@ output of the cipher's counter mode.
 
 =cut
 
-sub new($$) {
+sub new {
 	my($class, $cipher) = @_;
 	my Data::Entropy::RawSource::CryptCounter $self = fields::new($class);
 	$self->{cipher} = $cipher;
@@ -76,11 +76,53 @@ sub new($$) {
 =head1 METHODS
 
 A subset of the interfaces described in L<IO::Handle> and L<IO::Seekable>
-are provided.  The methods implemented are: C<clearerr>, C<close>, C<eof>,
-C<error>, C<getc>, C<getpos>, C<opened>, C<read>, C<seek>, C<setpos>,
-C<sysread>, C<sysseek>, C<tell>, C<ungetc>.
+are provided:
 
-C<close> does nothing.
+=over
+
+=item $rawsrc->read(BUFFER, LENGTH[, OFFSET])
+
+=item $rawsrc->getc
+
+=item $rawsrc->ungetc(ORD)
+
+=item $rawsrc->eof
+
+Buffered reading from the source, as in L<IO::Handle>.
+
+=item $rawsrc->sysread(BUFFER, LENGTH[, OFFSET])
+
+Unbuffered reading from the source, as in L<IO::Handle>.
+
+=item $rawsrc->close
+
+Does nothing.
+
+=item $rawsrc->opened
+
+Retruns true to indicate that the source is available for I/O.
+
+=item $rawsrc->clearerr
+
+=item $rawsrc->error
+
+Error handling, as in L<IO::Handle>.
+
+=item $rawsrc->getpos
+
+=item $rawsrc->setpos(POS)
+
+=item $rawsrc->tell
+
+=item $rawsrc->seek(POS, WHENCE)
+
+Move around within the buffered source, as in L<IO::Seekable>.
+
+=item $rawsrc->sysseek(POS, WHENCE)
+
+Move around within the unbuffered source, as in L<IO::Seekable>.
+
+=back
 
 The buffered (C<read> et al) and unbuffered (C<sysread> et al) sets
 of methods are interchangeable, because no such distinction is made by
@@ -96,18 +138,18 @@ is fundamentally read-only.
 
 =cut
 
-sub ensure_buffer($) {
+sub _ensure_buffer {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	$self->{buffer} = $self->{cipher}->encrypt($self->{counter})
 		unless exists $self->{buffer};
 }
 
-sub clear_buffer($) {
+sub _clear_buffer {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	delete $self->{buffer};
 }
 
-sub increment_counter($) {
+sub _increment_counter {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	for(my $i = 0; $i != $self->{blksize}; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
@@ -120,7 +162,7 @@ sub increment_counter($) {
 	$self->{counter} = undef;
 }
 
-sub decrement_counter($) {
+sub _decrement_counter {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	for(my $i = 0; ; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
@@ -132,40 +174,40 @@ sub decrement_counter($) {
 	}
 }
 
-sub close($) { 1 }
+sub close { 1 }
 
-sub opened($) { 1 }
+sub opened { 1 }
 
-sub error($) { 0 }
+sub error { 0 }
 
-sub clearerr($) { 0 }
+sub clearerr { 0 }
 
-sub getc($) {
+sub getc {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return undef unless defined $self->{counter};
-	$self->ensure_buffer;
+	$self->_ensure_buffer;
 	my $ret = substr($self->{buffer}, $self->{subpos}, 1);
 	if(++$self->{subpos} == $self->{blksize}) {
-		$self->increment_counter;
+		$self->_increment_counter;
 		$self->{subpos} = 0;
-		$self->clear_buffer;
+		$self->_clear_buffer;
 	}
 	return $ret;
 }
 
-sub ungetc($$) {
+sub ungetc {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	unless($self->{subpos} == 0) {
 		$self->{subpos}--;
 		return;
 	}
 	return if $self->{counter} =~ /\A\0*\z/;
-	$self->decrement_counter;
+	$self->_decrement_counter;
 	$self->{subpos} = $self->{blksize} - 1;
-	$self->clear_buffer;
+	$self->_clear_buffer;
 }
 
-sub read($$$;$) {
+sub read {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my(undef, $length, $offset) = @_;
 	return undef if $length < 0;
@@ -184,7 +226,7 @@ sub read($$$;$) {
 	}
 	my $original_offset = $offset;
 	while($length != 0 && defined($self->{counter})) {
-		$self->ensure_buffer;
+		$self->_ensure_buffer;
 		my $avail = $self->{blksize} - $self->{subpos};
 		if($length < $avail) {
 			$_[0] .= substr($self->{buffer}, $self->{subpos},
@@ -196,16 +238,16 @@ sub read($$$;$) {
 		$_[0] .= substr($self->{buffer}, $self->{subpos}, $avail);
 		$offset += $avail;
 		$length -= $avail;
-		$self->increment_counter;
+		$self->_increment_counter;
 		$self->{subpos} = 0;
-		$self->clear_buffer;
+		$self->_clear_buffer;
 	}
 	return $offset - $original_offset;
 }
 
 *sysread = \&read;
 
-sub tell($) {
+sub tell {
 	use integer;
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my $ctr = $self->{counter};
@@ -227,7 +269,7 @@ use constant SEEK_SET => 0;
 use constant SEEK_CUR => 1;
 use constant SEEK_END => 2;
 
-sub sysseek($$$) {
+sub sysseek {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my($offset, $whence) = @_;
 	if($whence == SEEK_SET) {
@@ -243,7 +285,7 @@ sub sysseek($$$) {
 			if($chopped =~ /\A\x{01}\0*\z/ && $subpos == 0) {
 				$self->{counter} = undef;
 				$self->{subpos} = 0;
-				$self->clear_buffer;
+				$self->_clear_buffer;
 				return $offset;
 			} elsif($chopped !~ /\A\0+\z/) {
 				return undef;
@@ -253,7 +295,7 @@ sub sysseek($$$) {
 		}
 		$self->{counter} = $ctr;
 		$self->{subpos} = $subpos;
-		$self->clear_buffer;
+		$self->_clear_buffer;
 		return $offset || "0 but true";
 	} elsif($whence == SEEK_CUR) {
 		my $pos = $self->tell;
@@ -272,14 +314,14 @@ sub sysseek($$$) {
 	}
 }
 
-sub seek($$$) { shift->sysseek(@_) ? 1 : 0 }
+sub seek { shift->sysseek(@_) ? 1 : 0 }
 
-sub getpos($) {
+sub getpos {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return [ $self->{counter}, $self->{subpos} ];
 }
 
-sub setpos($$) {
+sub setpos {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my($pos) = @_;
 	return undef unless is_ref($pos, "ARRAY") && @$pos == 2;
@@ -292,11 +334,11 @@ sub setpos($$) {
 	}
 	$self->{counter} = $ctr;
 	$self->{subpos} = $subpos;
-	$self->clear_buffer;
+	$self->_clear_buffer;
 	return "0 but true";
 }
 
-sub eof($) {
+sub eof {
 	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	return !defined($self->{counter});
 }
@@ -315,7 +357,9 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2007 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007, 2009 Andrew Main (Zefram) <zefram@fysh.org>
+
+=head1 LICENSE
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
