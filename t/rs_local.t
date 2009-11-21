@@ -1,6 +1,6 @@
 use Test::More tests => 4;
 
-BEGIN { use_ok Data::Entropy::RawSource::Local; }
+BEGIN { use_ok "Data::Entropy::RawSource::Local"; }
 
 $rawsrc = Data::Entropy::RawSource::Local->new("t/test0.entropy");
 ok $rawsrc;

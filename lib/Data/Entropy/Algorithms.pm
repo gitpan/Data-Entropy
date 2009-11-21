@@ -39,6 +39,7 @@ L<Data::Entropy>.
 
 package Data::Entropy::Algorithms;
 
+{ use 5.006; }
 use warnings;
 use strict;
 
@@ -50,9 +51,9 @@ use Data::Float 0.008 qw(
 );
 use Params::Classify 0.000 qw(is_ref);
 
-our $VERSION = "0.005";
+our $VERSION = "0.006";
 
-use base "Exporter";
+use parent "Exporter";
 our @EXPORT_OK = qw(
 	rand_bits rand_int rand_prob
 	rand_fix rand rand_flt
@@ -193,8 +194,13 @@ changes, to maintain the match.
 Where the source of a module can't be readily modified, it can be made
 to use this C<rand> by an incantation such as
 
-	*Foreign::Module::rand =
-		\&Data::Entropy::Algorithms::rand;
+	*Foreign::Module::rand = \&Data::Entropy::Algorithms::rand;
+
+This must be done before the module is loaded, most likely in a C<BEGIN>
+block.  It is also possible to override C<CORE::rand> for all modules,
+by performing this similarly early:
+
+	*CORE::GLOBAL::rand = \&Data::Entropy::Algorithms::rand;
 
 This function should not be used in any new code, because the kind
 of output supplied by C<rand> is hardly ever the right thing to use.
@@ -428,7 +434,8 @@ sub shuffle(@) { @{shuffle_r(\@_)} }
 
 =head1 SEE ALSO
 
-L<Data::Entropy>
+L<Data::Entropy>,
+L<Data::Entropy::Source>
 
 =head1 AUTHOR
 

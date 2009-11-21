@@ -2,7 +2,7 @@ use Test::More tests => 58;
 
 use Crypt::Rijndael;
 
-BEGIN { use_ok Data::Entropy::RawSource::CryptCounter; }
+BEGIN { use_ok "Data::Entropy::RawSource::CryptCounter"; }
 
 use constant SEEK_SET => 0;
 use constant SEEK_CUR => 1;

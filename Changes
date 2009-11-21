@@ -1,3 +1,25 @@
+version 0.006; 2009-11-21
+
+  * be more stringent in parsing responses from networked entropy sources
+
+  * in documentation, point more prominently to Data::Entropy::Algorithms
+
+  * in documentation of Data::Entropy::Algorithms, more discussion of
+    overriding CORE::rand, including how to override it globally
+
+  * abandon use of the "fields" module
+
+  * use simpler "parent" pragma in place of "base"
+
+  * check for required Perl version at runtime
+
+  * in test suite, properly quote first argument to use_ok (lack of
+    quoting caused false test failures on Perl 5.11.2)
+
+  * in Build.PL, explicitly declare configure-time requirements
+
+  * remove bogus "exit 0" from Build.PL
+
 version 0.005; 2009-03-03
 
   * bugfix: require bugfixed version of Data::Float (for $SIG{__DIE__}

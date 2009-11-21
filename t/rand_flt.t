@@ -2,7 +2,7 @@ use Test::More tests => 11001;
 
 use IO::File 1.03;
 
-BEGIN { use_ok Data::Entropy::Algorithms, qw(rand_flt); }
+BEGIN { use_ok "Data::Entropy::Algorithms", qw(rand_flt); }
 
 sub test_rand_flt($$) {
 	my($min, $max) = @_;

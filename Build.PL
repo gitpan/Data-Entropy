@@ -1,3 +1,4 @@
+{ use 5.006; }
 use warnings;
 use strict;
 
@@ -6,6 +7,10 @@ use Module::Build;
 Module::Build->new(
 	module_name => "Data::Entropy",
 	license => "perl",
+	configure_requires => {
+		"Module::Build" => 0,
+		"perl" => "5.006",
+	},
 	build_requires => {
 		"Crypt::Rijndael" => 0,
 		"Data::Float" => "0.008",
@@ -27,10 +32,9 @@ Module::Build->new(
 		"LWP" => "5.5394",
 		"LWP::UserAgent" => 0,
 		"Params::Classify" => 0,
-		"base" => 0,
 		"constant" => 0,
-		"fields" => 0,
 		"integer" => 0,
+		"parent" => 0,
 		"perl" => "5.006",
 		"strict" => 0,
 		"warnings" => 0,
@@ -45,4 +49,4 @@ Module::Build->new(
 	sign => 1,
 )->create_build_script;
 
-exit 0;
+1;

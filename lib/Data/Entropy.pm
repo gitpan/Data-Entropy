@@ -16,8 +16,9 @@ Data::Entropy - entropy (randomness) management
 
 =head1 DESCRIPTION
 
-This module maintains a concept of a current selection of entropy source.
-Algorithms that require entropy can use the source nominated by this
+This module maintains a concept of a current selection of
+entropy source.  Algorithms that require entropy, such as those in
+L<Data::Entropy::Algorithms>, can use the source nominated by this
 module, avoiding the need for entropy source objects to be explicitly
 passed around.  This is convenient because usually one entropy source
 will be used for an entire program run and so an explicit entropy source
@@ -37,15 +38,16 @@ is necessary to configure a different entropy source.
 
 package Data::Entropy;
 
+{ use 5.006; }
 use warnings;
 use strict;
 
 use Carp qw(croak);
 use Params::Classify qw(is_ref);
 
-our $VERSION = "0.005";
+our $VERSION = "0.006";
 
-use base "Exporter";
+use parent "Exporter";
 our @EXPORT_OK = qw(entropy_source with_entropy_source);
 
 our $entropy_source;

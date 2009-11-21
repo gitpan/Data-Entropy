@@ -2,7 +2,7 @@ use Test::More tests => 752;
 
 use IO::File 1.03;
 
-BEGIN { use_ok Data::Entropy::Source; }
+BEGIN { use_ok "Data::Entropy::Source"; }
 
 my $rawsource = IO::File->new("t/test0.entropy", "r") or die $!;
 my $source = Data::Entropy::Source->new($rawsource, "getc");

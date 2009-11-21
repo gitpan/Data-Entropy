@@ -2,7 +2,7 @@ use Test::More tests => 4930;
 
 use IO::File 1.03;
 
-BEGIN { use_ok Data::Entropy::Source; }
+BEGIN { use_ok "Data::Entropy::Source"; }
 
 sub match($$) {
 	my($a, $b) = @_;

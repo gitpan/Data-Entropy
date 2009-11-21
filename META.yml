@@ -1,29 +1,7 @@
 ---
-name: Data-Entropy
-version: 0.005
+abstract: 'entropy (randomness) management'
 author:
   - 'Andrew Main (Zefram) <zefram@fysh.org>'
-abstract: entropy (randomness) management
-license: perl
-resources:
-  license: ~
-requires:
-  Carp: 0
-  Crypt::Rijndael: 0
-  Data::Float: 0.008
-  Errno: 1.00
-  Exporter: 0
-  IO::File: 1.03
-  LWP: 5.5394
-  LWP::UserAgent: 0
-  Params::Classify: 0
-  base: 0
-  constant: 0
-  fields: 0
-  integer: 0
-  perl: 5.006
-  strict: 0
-  warnings: 0
 build_requires:
   Crypt::Rijndael: 0
   Data::Float: 0.008
@@ -34,34 +12,58 @@ build_requires:
   perl: 5.006
   strict: 0
   warnings: 0
+configure_requires:
+  Module::Build: 0
+  perl: 5.006
 conflicts:
-  Math::BigInt: < 1.60
-  Math::BigRat: < 0.04
+  Math::BigInt: '< 1.60'
+  Math::BigRat: '< 0.04'
+distribution_type: module
 dynamic_config: 0
+generated_by: 'Module::Build version 0.3509'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Data-Entropy
 provides:
   Data::Entropy:
     file: lib/Data/Entropy.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::Algorithms:
     file: lib/Data/Entropy/Algorithms.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::RawSource::CryptCounter:
     file: lib/Data/Entropy/RawSource/CryptCounter.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::RawSource::Local:
     file: lib/Data/Entropy/RawSource/Local.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::RawSource::RandomOrg:
     file: lib/Data/Entropy/RawSource/RandomOrg.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::RawSource::RandomnumbersInfo:
     file: lib/Data/Entropy/RawSource/RandomnumbersInfo.pm
-    version: 0.005
+    version: 0.006
   Data::Entropy::Source:
     file: lib/Data/Entropy/Source.pm
-    version: 0.005
-generated_by: Module::Build version 0.31012
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
-distribution_type: module
+    version: 0.006
+requires:
+  Carp: 0
+  Crypt::Rijndael: 0
+  Data::Float: 0.008
+  Errno: 1.00
+  Exporter: 0
+  IO::File: 1.03
+  LWP: 5.5394
+  LWP::UserAgent: 0
+  Params::Classify: 0
+  constant: 0
+  integer: 0
+  parent: 0
+  perl: 5.006
+  strict: 0
+  warnings: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.006

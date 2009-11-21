@@ -38,14 +38,13 @@ L<Data::Entropy::RawSource::RandomOrg>).
 
 package Data::Entropy::RawSource::CryptCounter;
 
+{ use 5.006; }
 use warnings;
 use strict;
 
 use Params::Classify 0.000 qw(is_number is_ref is_string);
 
-our $VERSION = "0.005";
-
-use fields qw(cipher blksize counter subpos buffer);
+our $VERSION = "0.006";
 
 =head1 CONSTRUCTOR
 
@@ -63,12 +62,12 @@ output of the cipher's counter mode.
 
 sub new {
 	my($class, $cipher) = @_;
-	my Data::Entropy::RawSource::CryptCounter $self = fields::new($class);
-	$self->{cipher} = $cipher;
-	$self->{blksize} = $cipher->blocksize;
-	$self->{counter} = "\0" x $self->{blksize};
-	$self->{subpos} = 0;
-	return $self;
+	return bless({
+		cipher => $cipher,
+		blksize => $cipher->blocksize,
+		counter => "\0" x $cipher->blocksize,
+		subpos => 0,
+	}, $class);
 }
 
 =back
@@ -139,18 +138,18 @@ is fundamentally read-only.
 =cut
 
 sub _ensure_buffer {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	$self->{buffer} = $self->{cipher}->encrypt($self->{counter})
 		unless exists $self->{buffer};
 }
 
 sub _clear_buffer {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	delete $self->{buffer};
 }
 
 sub _increment_counter {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	for(my $i = 0; $i != $self->{blksize}; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
 		unless($c == 255) {
@@ -163,7 +162,7 @@ sub _increment_counter {
 }
 
 sub _decrement_counter {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	for(my $i = 0; ; $i++) {
 		my $c = ord(substr($self->{counter}, $i, 1));
 		unless($c == 0) {
@@ -183,7 +182,7 @@ sub error { 0 }
 sub clearerr { 0 }
 
 sub getc {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	return undef unless defined $self->{counter};
 	$self->_ensure_buffer;
 	my $ret = substr($self->{buffer}, $self->{subpos}, 1);
@@ -196,7 +195,7 @@ sub getc {
 }
 
 sub ungetc {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self, undef) = @_;
 	unless($self->{subpos} == 0) {
 		$self->{subpos}--;
 		return;
@@ -208,34 +207,33 @@ sub ungetc {
 }
 
 sub read {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
-	my(undef, $length, $offset) = @_;
+	my($self, undef, $length, $offset) = @_;
 	return undef if $length < 0;
-	$_[0] = "" unless defined $_[0];
+	$_[1] = "" unless defined $_[1];
 	if(!defined($offset)) {
 		$offset = 0;
-		$_[0] = "";
+		$_[1] = "";
 	} elsif($offset < 0) {
-		return undef if $offset < -length($_[0]);
-		substr $_[0], $offset, -$offset, "";
-		$offset = length($_[0]);
-	} elsif($offset > length($_[0])) {
-		$_[0] .= "\0" x ($offset - length($_[0]));
+		return undef if $offset < -length($_[1]);
+		substr $_[1], $offset, -$offset, "";
+		$offset = length($_[1]);
+	} elsif($offset > length($_[1])) {
+		$_[1] .= "\0" x ($offset - length($_[1]));
 	} else {
-		substr $_[0], $offset, length($_[0]) - $offset, "";
+		substr $_[1], $offset, length($_[1]) - $offset, "";
 	}
 	my $original_offset = $offset;
 	while($length != 0 && defined($self->{counter})) {
 		$self->_ensure_buffer;
 		my $avail = $self->{blksize} - $self->{subpos};
 		if($length < $avail) {
-			$_[0] .= substr($self->{buffer}, $self->{subpos},
+			$_[1] .= substr($self->{buffer}, $self->{subpos},
 					$length);
 			$offset += $length;
 			$self->{subpos} += $length;
 			last;
 		}
-		$_[0] .= substr($self->{buffer}, $self->{subpos}, $avail);
+		$_[1] .= substr($self->{buffer}, $self->{subpos}, $avail);
 		$offset += $avail;
 		$length -= $avail;
 		$self->_increment_counter;
@@ -248,8 +246,8 @@ sub read {
 *sysread = \&read;
 
 sub tell {
+	my($self) = @_;
 	use integer;
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
 	my $ctr = $self->{counter};
 	my $nblocks;
 	if(defined $ctr) {
@@ -270,8 +268,7 @@ use constant SEEK_CUR => 1;
 use constant SEEK_END => 2;
 
 sub sysseek {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
-	my($offset, $whence) = @_;
+	my($self, $offset, $whence) = @_;
 	if($whence == SEEK_SET) {
 		use integer;
 		return undef if $offset < 0;
@@ -317,13 +314,12 @@ sub sysseek {
 sub seek { shift->sysseek(@_) ? 1 : 0 }
 
 sub getpos {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	return [ $self->{counter}, $self->{subpos} ];
 }
 
 sub setpos {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
-	my($pos) = @_;
+	my($self, $pos) = @_;
 	return undef unless is_ref($pos, "ARRAY") && @$pos == 2;
 	my($ctr, $subpos) = @$pos;
 	unless(!defined($ctr) && $subpos == 0) {
@@ -339,7 +335,7 @@ sub setpos {
 }
 
 sub eof {
-	my Data::Entropy::RawSource::CryptCounter $self = shift;
+	my($self) = @_;
 	return !defined($self->{counter});
 }
 

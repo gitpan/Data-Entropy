@@ -3,9 +3,9 @@ use Test::More tests => 158;
 use IO::File 1.03;
 
 BEGIN {
-	use_ok Data::Entropy::Source;
-	use_ok Data::Entropy, qw(with_entropy_source);
-	use_ok Data::Entropy::Algorithms, qw(pick pick_r);
+	use_ok "Data::Entropy::Source";
+	use_ok "Data::Entropy", qw(with_entropy_source);
+	use_ok "Data::Entropy::Algorithms", qw(pick pick_r);
 }
 
 with_entropy_source +Data::Entropy::Source->new(

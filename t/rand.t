@@ -4,9 +4,9 @@ use Data::Float 0.008 qw(significand_bits);
 use IO::File 1.03;
 
 BEGIN {
-	use_ok Data::Entropy::Source;
-	use_ok Data::Entropy, qw(with_entropy_source);
-	use_ok Data::Entropy::Algorithms, qw(rand);
+	use_ok "Data::Entropy::Source";
+	use_ok "Data::Entropy", qw(with_entropy_source);
+	use_ok "Data::Entropy::Algorithms", qw(rand);
 }
 
 $skip_all = significand_bits < 47;

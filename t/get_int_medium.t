@@ -4,7 +4,7 @@ use IO::File 1.03;
 my $have_bigint = eval("use Math::BigInt 1.16; 1");
 my $have_bigrat = eval("use Math::BigRat 0.04; 1");
 
-BEGIN { use_ok Data::Entropy::Source; }
+BEGIN { use_ok "Data::Entropy::Source"; }
 
 sub match($$) {
 	my($a, $b) = @_;

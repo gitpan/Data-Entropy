@@ -5,9 +5,9 @@ BEGIN {
 	eval "use Math::BigInt 1.16; 1" or
 		plan skip_all => "Math::BigInt unavailable";
 	plan tests => 35;
-	use_ok Data::Entropy::Source;
-	use_ok Data::Entropy, qw(with_entropy_source);
-	use_ok Data::Entropy::Algorithms, qw(rand_int);
+	use_ok "Data::Entropy::Source";
+	use_ok "Data::Entropy", qw(with_entropy_source);
+	use_ok "Data::Entropy::Algorithms", qw(rand_int);
 }
 
 sub match($$) {

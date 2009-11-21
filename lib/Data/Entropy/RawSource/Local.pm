@@ -42,13 +42,14 @@ and L<Data::Entropy::RawSource::RandomnumbersInfo>).
 
 package Data::Entropy::RawSource::Local;
 
+{ use 5.006; }
 use warnings;
 use strict;
 
 use Carp qw(croak);
 use IO::File 1.03;
 
-our $VERSION = "0.005";
+our $VERSION = "0.006";
 
 =head1 CONSTRUCTOR
 

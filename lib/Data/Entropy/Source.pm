@@ -16,9 +16,12 @@ Data::Entropy::Source - encapsulated source of entropy
 
 =head1 DESCRIPTION
 
-An object of this class encapsulates a source of entropy (randomness).
-Methods allow entropy to be dispensed in any quantity required, even
-fractional bits.
+An object of this class encapsulates a source of entropy
+(randomness).  Methods allow entropy to be dispensed in any
+quantity required, even fractional bits.  An entropy source object
+should not normally be used directly.  Rather, it should be used to
+support higher-level entropy-consuming algorithms, such as those in
+L<Data::Entropy::Algorithms>.
 
 This type of object is constructed as a layer over a raw entropy source
 which does not supply methods to extract arbitrary amounts of entropy.
@@ -41,14 +44,13 @@ entropy-using algorithm can be made completely deterministic if desired.
 
 package Data::Entropy::Source;
 
+{ use 5.006; }
 use warnings;
 use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.005";
-
-use fields qw(rawsrc readstyle limit num);
+our $VERSION = "0.006";
 
 =head1 CONSTRUCTOR
 
@@ -78,12 +80,12 @@ sub new {
 	croak "no raw entropy source given" unless defined $rawsrc;
 	croak "read style `$readstyle' not recognised"
 		unless $readstyle =~ /\A(?:getc|sysread)\z/;
-	my Data::Entropy::Source $self = fields::new($class);
-	$self->{rawsrc} = $rawsrc;
-	$self->{readstyle} = $readstyle;
-	$self->{limit} = 1;
-	$self->{num} = 0;
-	return $self;
+	return bless({
+		rawsrc => $rawsrc,
+		readstyle => $readstyle,
+		limit => 1,
+		num => 0,
+	}, $class);
 }
 
 =back
@@ -100,7 +102,7 @@ direct access to the raw entropy source.
 =cut
 
 sub get_octet {
-	my Data::Entropy::Source $self = shift;
+	my($self) = @_;
 	if($self->{readstyle} eq "getc") {
 		my $errno = $!;
 		$! = 0;
@@ -127,9 +129,8 @@ sub get_octet {
 # ->_get_small_int may be used only with a native integer argument, up to 256.
 
 sub _get_small_int {
+	my($self, $limit) = @_;
 	use integer;
-	my Data::Entropy::Source $self = shift;
-	my($limit) = @_;
 	my $reqlimit = $limit << 15;
 	while(1) {
 		while($self->{limit} < $reqlimit) {
@@ -154,8 +155,7 @@ sub _get_small_int {
 # was extracted using ->_get_small_int.
 
 sub _put_small_int {
-	my Data::Entropy::Source $self = shift;
-	my($limit, $num) = @_;
+	my($self, $limit, $num) = @_;
 	$self->{limit} *= $limit;
 	$self->{num} = $self->{num} * $limit + $num;
 }
@@ -169,8 +169,7 @@ significant bits set to zero.
 =cut
 
 sub get_bits {
-	my Data::Entropy::Source $self = shift;
-	my($nbits) = @_;
+	my($self, $nbits) = @_;
 	my $nbytes = $nbits >> 3;
 	$nbits &= 7;
 	my $str = "";
@@ -208,8 +207,7 @@ sub _break_int {
 }
 
 sub get_int {
-	my Data::Entropy::Source $self = shift;
-	my($limit) = @_;
+	my($self, $limit) = @_;
 	my $type = ref($limit);
 	my $max = _break_int($limit - 1);
 	my $len = @$max;
@@ -259,8 +257,7 @@ approximately 0.918 bits of entropy.
 =cut
 
 sub get_prob {
-	my Data::Entropy::Source $self = shift;
-	my($prob0, $prob1) = @_;
+	my($self, $prob0, $prob1) = @_;
 	croak "probabilities must be non-negative"
 		unless $prob0 >= 0 && $prob1 >= 0;
 	if($prob0 == 0) {
@@ -304,6 +301,7 @@ sub get_prob {
 =head1 SEE ALSO
 
 L<Data::Entropy>,
+L<Data::Entropy::Algorithms>,
 L<Data::Entropy::RawSource::CryptCounter>,
 L<Data::Entropy::RawSource::Local>,
 L<Data::Entropy::RawSource::RandomOrg>,
