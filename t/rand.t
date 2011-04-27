@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 261;
 
 use Data::Float 0.008 qw(significand_bits);
@@ -9,7 +12,7 @@ BEGIN {
 	use_ok "Data::Entropy::Algorithms", qw(rand);
 }
 
-$skip_all = significand_bits < 47;
+my $skip_all = significand_bits < 47;
 
 with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
@@ -26,7 +29,9 @@ with_entropy_source +Data::Entropy::Source->new(
 		is sprintf("%.5f", rand), "0.40339";
 		is sprintf("%.5f", rand(0)), "0.57643";
 	}
-}
+};
+
+1;
 
 __DATA__
 4.03949

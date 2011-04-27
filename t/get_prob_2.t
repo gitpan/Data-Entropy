@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 752;
 
 use IO::File 1.03;
@@ -13,6 +16,8 @@ while(<DATA>) {
 		is $source->get_prob(2, 1), $1;
 	}
 }
+
+1;
 
 __DATA__
 010010000000010000000001011000000000010000000001010000010100100110000010101

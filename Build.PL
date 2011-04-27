@@ -10,6 +10,8 @@ Module::Build->new(
 	configure_requires => {
 		"Module::Build" => 0,
 		"perl" => "5.006",
+		"strict" => 0,
+		"warnings" => 0,
 	},
 	build_requires => {
 		"Crypt::Rijndael" => 0,
@@ -28,9 +30,8 @@ Module::Build->new(
 		"Data::Float" => "0.008",
 		"Errno" => "1.00",
 		"Exporter" => 0,
+		"HTTP::Lite" => "2.2",
 		"IO::File" => "1.03",
-		"LWP" => "5.5394",
-		"LWP::UserAgent" => 0,
 		"Params::Classify" => 0,
 		"constant" => 0,
 		"integer" => 0,

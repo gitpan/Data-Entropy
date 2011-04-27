@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 54;
 
 use IO::File 1.03;
@@ -11,7 +14,7 @@ BEGIN {
 with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
 ), sub {
-	@items = qw(a b c d e f g h i j);
+	my @items = qw(a b c d e f g h i j);
 	$_ = <DATA>;
 	while(/([a-z]+)/g) {
 		is join("", choose(3, @items)), $1;
@@ -36,7 +39,9 @@ with_entropy_source +Data::Entropy::Source->new(
 	like $@, qr/\Aneed a sufficiently large array to pick from/;
 	eval { choose_r(4, "a"); };
 	like $@, qr/\Aneed a sufficiently large array to pick from/;
-}
+};
+
+1;
 
 __DATA__
 bci abg abi fgh fgj chj bce dfh bhj adj dij cde ceh acd adi cij cdg beh acf egi

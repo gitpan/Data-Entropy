@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 1 + (500 + 1)*3;
 
 use IO::File 1.03;
@@ -41,6 +44,8 @@ while(<DATA>) {
 		}
 	}
 }
+
+1;
 
 __DATA__
 698 484 175 923 914 765 687 623 350 789 040 519 150 248 926 334 624 403 402 563

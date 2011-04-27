@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 4930;
 
 use IO::File 1.03;
@@ -21,6 +24,8 @@ while(<DATA>) {
 
 eval { $source->get_int(10); };
 like $@, qr/\Aentropy source failed:/;
+
+1;
 
 __DATA__
 576597749637294638347592570212132217704252351927564932761346046298673314465

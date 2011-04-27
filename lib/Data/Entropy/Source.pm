@@ -50,7 +50,7 @@ use strict;
 
 use Carp qw(croak);
 
-our $VERSION = "0.006";
+our $VERSION = "0.007";
 
 =head1 CONSTRUCTOR
 
@@ -313,7 +313,8 @@ Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2007, 2009 Andrew Main (Zefram) <zefram@fysh.org>
+Copyright (C) 2006, 2007, 2009, 2011
+Andrew Main (Zefram) <zefram@fysh.org>
 
 =head1 LICENSE
 

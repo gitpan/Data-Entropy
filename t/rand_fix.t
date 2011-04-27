@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 261;
 
 use IO::File 1.03;
@@ -18,7 +21,9 @@ with_entropy_source +Data::Entropy::Source->new(
 	is rand_fix(1), 0.0;
 	eval { rand_fix(-1); };
 	like $@, qr/\Aneed a non-negative number of bits to dispense/;
-}
+};
+
+1;
 
 __DATA__
 0.681640625

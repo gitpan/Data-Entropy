@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 22;
 
 use IO::File 1.03;
@@ -11,7 +14,7 @@ BEGIN {
 with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
 ), sub {
-	@items = qw(a b c d e f g h i j);
+	my @items = qw(a b c d e f g h i j);
 	$_ = <DATA>;
 	while(/([a-z]+)/g) {
 		is join("", shuffle(@items)), $1;
@@ -26,7 +29,9 @@ with_entropy_source +Data::Entropy::Source->new(
 	is_deeply shuffle_r([]), [];
 	eval { shuffle_r("a"); };
 	like $@, qr/\Aneed an array to shuffle/;
-}
+};
+
+1;
 
 __DATA__
 djeciabhgf jchfbgidae hcfijbgdae dfghaicebj dcibgfajeh cajgedfbhi fbejdihacg

@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 183;
 
 use IO::File 1.03;
@@ -16,6 +19,8 @@ for($nbits = 1; <DATA>; $nbits++) {
 
 eval { $source->get_bits($nbits); };
 like $@, qr/\Aentropy source failed:/;
+
+1;
 
 __DATA__
 10

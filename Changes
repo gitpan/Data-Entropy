@@ -1,3 +1,21 @@
+version 0.007; 2011-04-27
+
+  * update D::E::RS::RandomOrg to cope with fractional fill percentage
+    currently being returned by the website
+
+  * in D::E::RS::RandomOrg and D::E::RS::RandomnumbersInfo, use HTTP::Lite
+    instead of heavyweight LWP
+
+  * use full stricture in test suite
+
+  * in Build.PL, complete declaration of configure-time requirements
+
+  * explicitly state version required of Params::Classify
+
+  * include META.json in distribution
+
+  * add MYMETA.json and MYMETA.yml to .cvsignore
+
 version 0.006; 2009-11-21
 
   * be more stringent in parsing responses from networked entropy sources

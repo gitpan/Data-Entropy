@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 11001;
 
 use IO::File 1.03;
@@ -25,3 +28,5 @@ test_rand_flt(-2.0, 1.0);
 test_rand_flt(-1.0, 2.0);
 test_rand_flt(2.5, 2.5);
 test_rand_flt(-0.0, +0.0);
+
+1;

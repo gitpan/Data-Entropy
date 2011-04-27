@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 58;
 
 use Crypt::Rijndael;
@@ -12,6 +15,7 @@ my $ctr = Data::Entropy::RawSource::CryptCounter
 		->new(Crypt::Rijndael->new("\0" x 32));
 ok $ctr;
 
+my $d;
 is $ctr->tell, 0;
 is $ctr->getc, "\xdc";
 is $ctr->getc, "\x95";
@@ -31,7 +35,7 @@ is $ctr->read($d, 3), 3;
 is $d, "\xb6\x3d\x8d";
 is $ctr->tell, 41;
 is $ctr->getc, "\x60";
-$pos = $ctr->getpos;
+my $pos = $ctr->getpos;
 is $ctr->seek(207, SEEK_SET), 1;
 is $ctr->getc, "\xd2";
 is $ctr->getc, "\x0f";
@@ -70,3 +74,5 @@ is $ctr->clearerr, 0;
 ok $ctr->opened;
 ok !$ctr->eof;
 is $ctr->getc, "\xa5";
+
+1;

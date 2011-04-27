@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 2051;
 
 use IO::File 1.03;
@@ -15,3 +18,5 @@ until($rawsource->eof) {
 
 eval { $source->get_octet; };
 like $@, qr/\Aentropy source failed:/;
+
+1;

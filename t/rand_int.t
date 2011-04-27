@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use IO::File 1.03;
 use Test::More;
 
@@ -27,7 +30,9 @@ with_entropy_source +Data::Entropy::Source->new(
 	match rand_int(1), 0;
 	eval { rand_int(0); };
 	like $@, qr/\Aneed a positive upper limit for random variable/;
-}
+};
+
+1;
 
 __DATA__
 68807314153453845935 44895925609758693014 91684367776668160563

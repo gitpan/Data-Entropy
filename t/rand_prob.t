@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 157;
 
 use IO::File 1.03;
@@ -25,7 +28,9 @@ with_entropy_source +Data::Entropy::Source->new(
 	like $@, qr/\Aprobabilities must be non-negative/;
 	eval { rand_prob(0); };
 	like $@, qr/\Acan't have nothing possible/;
-}
+};
+
+1;
 
 __DATA__
 334004330330101331104144441041440443440340311333014430141343331033433134434

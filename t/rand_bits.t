@@ -1,3 +1,6 @@
+use warnings;
+use strict;
+
 use Test::More tests => 45;
 
 use IO::File 1.03;
@@ -11,14 +14,16 @@ BEGIN {
 with_entropy_source +Data::Entropy::Source->new(
 		IO::File->new("t/test0.entropy", "r") || die($!), "getc"
 ), sub {
-	for($nbits = 1; <DATA>; $nbits++) {
+	for(my $nbits = 1; <DATA>; $nbits++) {
 		chop;
 		is rand_bits($nbits), pack("h*", $_);
 	}
 	is rand_bits(0), "";
 	eval { rand_bits(-1); };
 	like $@, qr/\Aneed a non-negative number of bits to dispense/;
-}
+};
+
+1;
 
 __DATA__
 10
